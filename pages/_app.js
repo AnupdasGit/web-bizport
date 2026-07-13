@@ -7,7 +7,7 @@ import DarkMode from "@components/ToggleDarkmode";
 function App({ Component, pageProps }) {
   return (
     <ChakraProvider>
-      <Container border="solid red 2px" boxShadow="dark-lg" maxW="container.lg">
+      <Container boxShadow="dark-lg" maxW="container.lg">
         <DarkMode/>
         <NavBar />
         <Component {...pageProps} />

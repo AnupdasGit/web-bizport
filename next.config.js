@@ -1,11 +1,4 @@
 module.exports = {
-  compress: false,
-  webpack(config, { dev }) {
-    if (!dev) {
-      config.optimization.minimize = false;
-    }
-    return config;
-  },
   async headers() {
     return [
       {

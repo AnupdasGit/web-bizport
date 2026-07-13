@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 
 import {
   Box,
@@ -8,6 +7,7 @@ import {
   Button,
   Stack,
   Image,
+  Link,
   useColorModeValue,
   PopoverContent,
   Icon,
@@ -69,7 +69,7 @@ const MenuToggle = ({ toggle, closeToggle, isOpen }) => {
 };
 const MenuItem = ({ children, toggle, closeToggle,  isLast, to = "/", ...rest }) => {
   return (
-    <Link href={to}>
+    <a href={to} style={{ textDecoration: "none" }}>
       <Button
         boxShadow="0 0 40px 40px #FFFF00 inset, 0 0 0 0 #FFFF00"
         //WebkitTransition="all 150ms ease-in-out"
@@ -90,7 +90,7 @@ const MenuItem = ({ children, toggle, closeToggle,  isLast, to = "/", ...rest })
       >
         {children}
       </Button>
-    </Link>
+    </a>
   );
 };
 

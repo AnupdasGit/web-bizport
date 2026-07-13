@@ -115,7 +115,7 @@ export default function FooterPage() {
         <Stack align={"flex-end"}>
           <Stack spacing={6}>
             <Text fontSize={"sm"}>© {new Date().getFullYear()} Bizport Solutions All rights reserved</Text>
-            <NextLink href="/privacy-policy" passHref>
+            <NextLink href="/privacy-policy" passHref legacyBehavior>
               <Link
                 fontSize={"sm"}
                 color={useColorModeValue("gray.700", "white.300")}
