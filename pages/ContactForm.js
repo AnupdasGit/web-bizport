@@ -2,7 +2,7 @@ import { Box, Heading, Stack } from "@chakra-ui/layout";
 import dynamic from "next/dynamic";
 import React from "react";
 
-const IndexPage = dynamic(() => import("pages/index copy 2"), { ssr: false });
+const IndexPage = dynamic(() => import("./index copy 2"), { ssr: false });
 
 export default function ContactForm() {
   return (

@@ -38,14 +38,15 @@ const ListHeader = ({ children }) => {
 export default function FooterPage() {
   return (
     <Box
-      bg={useColorModeValue("gray.50", "gray.700")}
-      color={useColorModeValue("white.50", "white.700")}
+      bg={useColorModeValue("ink.900", "gray.900")}
+      color={useColorModeValue("gray.200", "gray.300")}
       justify={"space-between"}
+      mt={12}
     >
       <Container as={Stack} justify={"space-between"} maxW={"9xl"} py={10}>
         <SimpleGrid templateColumns={{ sm: "1fr 1fr", md: "4fr 2fr 2fr" }}>
           <Stack align={"flex-start"}>
-            <Heading color={useColorModeValue("gray.700", "white.200")}>
+            <Heading color={useColorModeValue("white", "white")}>
               Address
             </Heading>
             <ListHeader>Flat no.103,Gauri Apartment</ListHeader>
@@ -75,15 +76,15 @@ export default function FooterPage() {
             </Link>
           </Stack>
           <Stack align={"flex-start"} fontWeight="black">
-            <Heading color={useColorModeValue("gray.700", "white.200")}>
+            <Heading color={useColorModeValue("white", "white")}>
               Services
             </Heading>
-            <Link href="#CustomizedPage">Customized Development</Link>
-            <Link href="#mobileAppDevelopment">Mobile App Development</Link>
-            <Link href="#webpageDevelopment">Webpage Development</Link>
+            <Link href="/#CustomizedPage">Customized Development</Link>
+            <Link href="/#mobileAppDevelopment">Mobile App Development</Link>
+            <Link href="/#webpageDevelopment">Webpage Development</Link>
           </Stack>
           <Stack align={"flex-start"} fontWeight="black">
-            <Heading color={useColorModeValue("gray.700", "white.200")}>
+            <Heading color={useColorModeValue("white", "white")}>
               Follow Us
             </Heading>
             <Link
@@ -118,14 +119,14 @@ export default function FooterPage() {
             <NextLink href="/privacy-policy" passHref legacyBehavior>
               <Link
                 fontSize={"sm"}
-                color={useColorModeValue("gray.700", "white.300")}
+                color={useColorModeValue("gray.300", "gray.300")}
                 _hover={{ textDecoration: "underline" }}
               >
                 Privacy Policy
               </Link>
             </NextLink>
           </Stack>
-          <Link href="#homepage">
+          <Link href="/#homepage">
             <Button>Top</Button>
           </Link>
         </Stack>

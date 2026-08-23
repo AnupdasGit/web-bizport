@@ -21,3 +21,6 @@ Thumbs.db
 
 # Editor
 .vscode/
+
+# Local HTTPS certificates
+certificates/

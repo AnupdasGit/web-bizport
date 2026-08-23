@@ -1,173 +1,123 @@
 import { useState } from "react";
 import emailjs from "emailjs-com";
-import { Button } from "@chakra-ui/button";
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  Button,
+  FormControl,
+  FormLabel,
+  Input,
+  SimpleGrid,
+  Stack,
+  Textarea,
+  useColorModeValue,
+} from "@chakra-ui/react";
+
+const fields = [
+  { id: "from_name", name: "from_name", label: "Name", type: "text" },
+  {
+    id: "from_nameofcompany",
+    name: "from_nameofcompany",
+    label: "Company name",
+    type: "text",
+  },
+  { id: "from_email", name: "from_email", label: "Email", type: "email" },
+  {
+    id: "from_phoneno",
+    name: "from_phoneno",
+    label: "Mobile number",
+    type: "tel",
+  },
+  { id: "from_address", name: "from_address", label: "Address", type: "text" },
+];
 
 export default function IndexPage() {
-  const [message, setMessage] = useState(false); // set kondisi untuk pesan
-  const [button, setButton] = useState(false); // set kondisi untuk tombol
+  const [result, setResult] = useState(null);
+  const [isSending, setIsSending] = useState(false);
+  const panelBackground = useColorModeValue("white", "gray.800");
+  const panelText = useColorModeValue("ink.800", "gray.100");
+  const panelBorder = useColorModeValue("gray.200", "whiteAlpha.200");
+  const inputBackground = useColorModeValue("white", "gray.900");
+  const inputBorder = useColorModeValue("gray.300", "gray.600");
+  const placeholderColor = useColorModeValue("gray.500", "gray.400");
 
-  // Fungsi saat form di submit
-  function sendEmail(e) {
-    e.preventDefault();
+  async function sendEmail(event) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    setIsSending(true);
+    setResult(null);
 
-    emailjs
-      .sendForm(
+    try {
+      await emailjs.sendForm(
         "service_thc7ljo",
         "template_je6ta2h",
-        e.target,
+        form,
         "user_9oKOxPKSJxeofT9BLB48N"
-      )
-      .then(
-        (result) => {
-          // Pesan yang muncul saat sukses
-          setMessage(
-            <div className="text-white px-6 py-4 border-0 rounded relative mb-4 bg-indigo-500">
-              <span className="inline-block align-middle mr-8">
-                Your message has been sent!
-              </span>
-            </div>
-          );
-          setButton("SEND MESSAGE");
-        },
-        (error) => {
-          // Pesan yang muncul saat error
-          setMessage(
-            <div className="text-white px-6 py-4 border-0 rounded relative mb-4 bg-indigo-500">
-              <span className="inline-block align-middle mr-8">
-                {error.text}
-              </span>
-            </div>
-          );
-          setButton("SEND MESSAGE");
-        }
       );
+      form.reset();
+      setResult({ status: "success", message: "Your message has been sent." });
+    } catch (error) {
+      setResult({
+        status: "error",
+        message: error?.text || "We could not send your message. Please try again.",
+      });
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
-    <div>
-      <section className="text-gray-600 body-font relative">
-        <div className="container px-5 py-24 mx-auto">
-          <div className="flex flex-col text-center w-full mb-12">
-            <h1 className="sm:text-3xl text-2xl font-medium title-font mb-4 text-gray-900">
-              Contact Us
-            </h1>
-          </div>
-          <form onSubmit={sendEmail}>
-            <div className="lg:w-1/2 md:w-2/3 mx-auto">
-              <div className="flex flex-wrap -m-2">
-                <div className="p-2 w-1/2">
-                  <div className="relative">
-                    <label
-                      htmlFor="name"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                      Name
-                    </label> <br/>
-                    <input
-                      type="text"
-                      id="from_name"
-                      name="from_name"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="p-2 w-1/2">
-                  <div className="relative">
-                    <label
-                      htmlFor="nameofcompany"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                     Company Name
-                    </label> <br/>
-                    <input
-                      type="text"
-                      id="from_nameofcompany"
-                      name="from_nameofcompany"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="p-2 w-1/2">
-                  <div className="relative">
-                    <label
-                      htmlFor="email"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                      Email
-                    </label> <br/>
-                    <input
-                      type="email"
-                      id="from_email"
-                      name="from_email"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="p-2 w-1/2">
-                  <div className="relative">
-                    <label
-                      htmlFor="phoneno"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                      Mobile Number
-                    </label> <br/>
-                    <input
-                      type="text"
-                      id="from_phoneno"
-                      name="from_phoneno"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="p-2 w-1/2">
-                  <div className="relative">
-                    <label
-                      htmlFor="address"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                      Address
-                    </label> <br/>
-                    <input
-                      type="text"
-                      id="from_address"
-                      name="from_address"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="p-2 w-full">
-                  <div className="relative">
-                    <label
-                      htmlFor="message"
-                      className="leading-7 text-sm text-gray-600"
-                    >
-                      Message
-                    </label>
-                    <br/>
-                    <textarea
-                      id="message"
-                      name="message"
-                      className="w-full bg-gray-100 bg-opacity-50 rounded border border-gray-300 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-200 h-32 text-base outline-none text-gray-700 py-1 px-3 resize-none leading-6 transition-colors duration-200 ease-in-out"
-                      required
-                    ></textarea>
-                  </div>
-                </div>
-                <div className="p-2 w-full">
-                  <Button>{!button ? "SEND MESSAGE" : button}</Button>
-                </div>
-              </div>
-            </div>
-          </form>
-          <div id="form-result" className="lg:w-1/2 md:w-2/3 mx-auto mt-10">
-            {message}
-          </div>
-        </div>
-      </section>
-    </div>
+    <Box className="col-md-6" py={{ base: 8, md: 10 }} px={{ base: 4, md: 8 }}>
+      <Box
+        as="form"
+        onSubmit={sendEmail}
+        bg={panelBackground}
+        color={panelText}
+        border="1px solid"
+        borderColor={panelBorder}
+        borderRadius="md"
+        boxShadow="lg"
+        p={{ base: 6, md: 8 }}
+        sx={{
+          "& input, & textarea": {
+            color: panelText,
+            backgroundColor: inputBackground,
+            borderColor: inputBorder,
+          },
+          "& input::placeholder, & textarea::placeholder": {
+            color: placeholderColor,
+            opacity: 1,
+          },
+        }}
+      >
+        <Stack spacing={5}>
+          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={5}>
+            {fields.map((field) => (
+              <FormControl key={field.id} isRequired>
+                <FormLabel htmlFor={field.id}>{field.label}</FormLabel>
+                <Input id={field.id} name={field.name} type={field.type} />
+              </FormControl>
+            ))}
+          </SimpleGrid>
+
+          <FormControl isRequired>
+            <FormLabel htmlFor="message">Message</FormLabel>
+            <Textarea id="message" name="message" minH="140px" resize="vertical" />
+          </FormControl>
+
+          {result ? (
+            <Alert status={result.status} borderRadius="md">
+              <AlertIcon />
+              {result.message}
+            </Alert>
+          ) : null}
+
+          <Button type="submit" size="lg" isLoading={isSending} alignSelf="flex-start">
+            Send message
+          </Button>
+        </Stack>
+      </Box>
+    </Box>
   );
 }

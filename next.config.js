@@ -1,4 +1,12 @@
 module.exports = {
+  async rewrites() {
+    return [
+      {
+        source: "/api/whatsapp/:path*",
+        destination: `${process.env.API_BACKEND_URL || "http://localhost:9080"}/api/whatsapp/:path*`,
+      },
+    ];
+  },
   async headers() {
     return [
       {

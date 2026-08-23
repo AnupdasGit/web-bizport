@@ -15,6 +15,7 @@ import {
   VStack,
   Icon,
   HStack,
+  useColorModeValue,
 } from "@chakra-ui/react";
 
 function Feature({ title, text, ...rest }) {
@@ -25,7 +26,7 @@ function Feature({ title, text, ...rest }) {
       </Box>
       <VStack align={"start"}>
         <Text fontWeight={600}>{title}</Text>
-        <Text color={"gray.600"}>{text}</Text>
+        <Text color={useColorModeValue("gray.600", "gray.300")}>{text}</Text>
       </VStack>
     </HStack>
   );

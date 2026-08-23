@@ -70,12 +70,12 @@ function Feature({ text, title, icon, title1, ...rest }) {
 function FeaturePoint({ title, text, ...rest }) {
   return (
     <HStack align={"top"}>
-      <Box color={"black.400"} pt={2}>
+      <Box color={useColorModeValue("gray.500", "gray.400")} pt={2}>
         <Icon as={FaCircle} w={2} h={2} />
       </Box>
       <VStack align={"start"}>
         <Text fontWeight={600}>{title}</Text>
-        <Text  color={useColorModeValue("white.50", "white.900")}  >{text}</Text>
+        <Text color={useColorModeValue("gray.600", "gray.300")}>{text}</Text>
       </VStack>
     </HStack>
   );
