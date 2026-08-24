@@ -90,63 +90,83 @@ export default function WhatsAppConnectCard({ account, onConnected }) {
     return () => window.removeEventListener("message", handleMessage);
   }, []);
 
+  const handleEmbeddedSignupResponse = async (response) => {
+    try {
+      const code = response?.authResponse?.code;
+
+      if (!code) {
+        setError("WhatsApp connection was cancelled or did not complete.");
+        return;
+      }
+
+      const { wabaId, phoneNumberId } = signupDataRef.current;
+
+      if (!wabaId || !phoneNumberId) {
+        setError(
+          "Could not read the WhatsApp Business Account details from Meta. Please try again."
+        );
+        return;
+      }
+
+      const { data } = await whatsappApi.exchangeEmbeddedSignupCode({
+        code,
+        wabaId,
+        phoneNumberId,
+      });
+
+      onConnected?.(data.account);
+    } catch (err) {
+      setError(
+        extractErrorMessage(err, "Could not complete the WhatsApp connection.")
+      );
+    } finally {
+      setIsConnecting(false);
+    }
+  };
   const handleConnect = async () => {
     setError("");
+
     if (window.location.protocol !== "https:") {
       setError(
-        "Meta requires HTTPS for WhatsApp signup. Run npm run dev:https and open https://localhost:3000/dashboard."
+        "Meta requires HTTPS for WhatsApp signup. Open the app using HTTPS and try again."
       );
       return;
     }
+
     if (!isConfigured) {
       setError(
-        "WhatsApp Embedded Signup isn't configured yet. Add your real Meta App ID and Configuration ID to .env.local, then restart the server."
+        "WhatsApp Embedded Signup is not configured. Set the Meta App ID and Configuration ID, then restart the frontend."
       );
       return;
     }
+
     setIsConnecting(true);
+
     try {
       const FB = await loadFacebookSdk();
+
       FB.login(
-        async (response) => {
-          try {
-            const code = response?.authResponse?.code;
-            if (!code) {
-              setError("WhatsApp connection was cancelled or did not complete.");
-              setIsConnecting(false);
-              return;
-            }
-            const { wabaId, phoneNumberId } = signupDataRef.current;
-            if (!wabaId || !phoneNumberId) {
-              setError("Could not read the WhatsApp Business Account details from Meta. Please try again.");
-              setIsConnecting(false);
-              return;
-            }
-            const { data } = await whatsappApi.exchangeEmbeddedSignupCode({
-              code,
-              wabaId,
-              phoneNumberId,
-            });
-            onConnected?.(data.account);
-          } catch (err) {
-            setError(extractErrorMessage(err, "Could not complete the WhatsApp connection."));
-          } finally {
-            setIsConnecting(false);
-          }
+        function onFacebookLogin(response) {
+          void handleEmbeddedSignupResponse(response);
         },
         {
           config_id: META_CONFIG_ID,
           response_type: "code",
           override_default_response_type: true,
-          extras: { setup: {}, featureType: "" },
+          extras: {
+            setup: {},
+            featureType: "",
+            sessionInfoVersion: "3",
+          },
         }
       );
     } catch (err) {
-      setError(extractErrorMessage(err, "Could not start the WhatsApp connection."));
+      setError(
+        extractErrorMessage(err, "Could not start the WhatsApp connection.")
+      );
       setIsConnecting(false);
     }
   };
-
   return (
     <Box bg={cardBackground} color={cardText} borderRadius="2xl" boxShadow="md" border="1px solid" borderColor={cardBorder} p={{ base: 5, md: 7 }}>
       <HStack mb={5} spacing={3}>
