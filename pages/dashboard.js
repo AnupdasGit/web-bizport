@@ -15,6 +15,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import AccountDetailsCard from "../components/dashboard/AccountDetailsCard";
 import WhatsAppConnectCard from "../components/dashboard/WhatsAppConnectCard";
+import MessageTemplatesCard from "../components/dashboard/MessageTemplatesCard";
 import MessagesLogCard from "../components/dashboard/MessagesLogCard";
 import WhatsAppApiKeyPage from "./whatsapp-api-key";
 
@@ -127,6 +128,7 @@ export default function DashboardPage() {
             account={account}
             onConnected={() => refreshMe()}
           />
+          <MessageTemplatesCard />
           <WhatsAppApiKeyPage
             companyCId={account?.companyCId ?? company?.cId}
             confirmWord={account?.companyName || company?.dbcompanyname}
