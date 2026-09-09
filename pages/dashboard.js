@@ -126,7 +126,7 @@ export default function DashboardPage() {
           <AccountDetailsCard account={account} company={company} />
           <WhatsAppConnectCard
             account={account}
-            onConnected={() => refreshMe()}
+            onAccountChanged={() => refreshMe()}
           />
           <MessageTemplatesCard />
           <WhatsAppApiKeyPage

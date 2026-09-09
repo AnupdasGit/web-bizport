@@ -30,7 +30,6 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useForm } from "react-hook-form";
 import {
   FaCheck,
   FaCopy,
@@ -82,6 +81,9 @@ export default function WhatsAppApiKeyPage({
   const [revokeConfirmed, setRevokeConfirmed] = useState(false);
   const [cooldownSeconds, setCooldownSeconds] = useState(0);
   const [cooldownActive, setCooldownActive] = useState(false);
+  const [acknowledgesInvalidation, setAcknowledgesInvalidation] =
+    useState(false);
+  const [confirmationWord, setConfirmationWord] = useState("");
   const pageBackground = useColorModeValue("gray.50", "gray.900");
   const cardBackground = useColorModeValue("white", "gray.800");
   const cardBorder = useColorModeValue("gray.200", "whiteAlpha.300");
@@ -90,19 +92,8 @@ export default function WhatsAppApiKeyPage({
   const effectiveCompanyId = companyCId ?? company?.cId;
   const expectedConfirmWord =
     confirmWord || company?.dbcompanyname || "CONFIRM";
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isValid },
-  } = useForm({
-    mode: "onChange",
-    defaultValues: {
-      acknowledgesInvalidation: false,
-      confirmationWord: "",
-    },
-  });
+  const isConfirmationValid =
+    acknowledgesInvalidation && confirmationWord === expectedConfirmWord;
 
   useEffect(() => {
     setHasKey(Boolean(apiKeyHash));
@@ -138,7 +129,8 @@ export default function WhatsAppApiKeyPage({
 
   const openConfirmation = (action) => {
     setPendingAction(action);
-    reset({ acknowledgesInvalidation: false, confirmationWord: "" });
+    setAcknowledgesInvalidation(false);
+    setConfirmationWord("");
     confirmationModal.onOpen();
   };
 
@@ -359,7 +351,10 @@ export default function WhatsAppApiKeyPage({
                 </AlertDescription>
               </Alert>
               <Checkbox
-                {...register("acknowledgesInvalidation", { required: true })}
+                isChecked={acknowledgesInvalidation}
+                onChange={(event) =>
+                  setAcknowledgesInvalidation(event.target.checked)
+                }
               >
                 I understand the old key will stop working immediately
               </Checkbox>
@@ -373,10 +368,8 @@ export default function WhatsAppApiKeyPage({
                 </Text>
                 <Input
                   autoComplete="off"
-                  {...register("confirmationWord", {
-                    required: true,
-                    validate: (value) => value === expectedConfirmWord,
-                  })}
+                  value={confirmationWord}
+                  onChange={(event) => setConfirmationWord(event.target.value)}
                 />
               </Box>
             </VStack>
@@ -385,14 +378,14 @@ export default function WhatsAppApiKeyPage({
             <Button
               variant="ghost"
               onClick={confirmationModal.onClose}
-              isDisabled={!isValid || loadingAction !== null}
+              isDisabled={loadingAction !== null}
             >
               Cancel
             </Button>
             <Button
               colorScheme="red"
-              onClick={handleSubmit(submitGenerateOrRotate)}
-              isDisabled={!isValid || loadingAction !== null}
+              onClick={submitGenerateOrRotate}
+              isDisabled={!isConfirmationValid || loadingAction !== null}
               leftIcon={loadingAction ? <Spinner size="sm" /> : undefined}
             >
               {loadingAction
