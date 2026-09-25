@@ -5,16 +5,9 @@ import {
   Badge,
   Box,
   Button,
-  Divider,
-  FormControl,
-  FormHelperText,
-  FormLabel,
   Heading,
   HStack,
   Icon,
-  Input,
-  Radio,
-  RadioGroup,
   SimpleGrid,
   Stack,
   Stat,
@@ -24,12 +17,6 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaWhatsapp } from "react-icons/fa";
-import {
-  FiCheckCircle,
-  FiMessageSquare,
-  FiPhoneCall,
-  FiShield,
-} from "react-icons/fi";
 import { whatsappApi, extractErrorMessage } from "../../lib/apiClient";
 
 const META_APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
@@ -76,29 +63,13 @@ function loadFacebookSdk() {
 export default function WhatsAppConnectCard({ account, onAccountChanged }) {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState("");
-  const [verificationMethod, setVerificationMethod] = useState("SMS");
-  const [verificationStep, setVerificationStep] = useState("method");
-  const [code, setCode] = useState("");
-  const [isRequestingCode, setIsRequestingCode] = useState(false);
-  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
-  const [verificationError, setVerificationError] = useState("");
-  const [verifiedLocally, setVerifiedLocally] = useState(false);
   const signupDataRef = useRef({ wabaId: null, phoneNumberId: null });
   const cardBackground = useColorModeValue("white", "gray.800");
   const cardText = useColorModeValue("ink.800", "gray.100");
   const mutedText = useColorModeValue("ink.500", "gray.300");
   const cardBorder = useColorModeValue("gray.100", "whiteAlpha.200");
-  const verificationBackground = useColorModeValue("gray.50", "whiteAlpha.50");
-  const optionBackground = useColorModeValue("white", "gray.800");
-  const selectedOptionBackground = useColorModeValue(
-    "green.50",
-    "whiteAlpha.100",
-  );
 
   const isConnected = Boolean(account?.wabaId);
-  const canVerifyPhone = isConnected && Boolean(account?.phoneNumberId);
-  const isPhoneVerified =
-    account?.phoneNumberVerified === true || verifiedLocally;
   const isConfigured =
     isValidMetaId(META_APP_ID) && isValidMetaId(META_CONFIG_ID);
 
@@ -120,13 +91,6 @@ export default function WhatsAppConnectCard({ account, onAccountChanged }) {
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
   }, []);
-
-  useEffect(() => {
-    setVerifiedLocally(false);
-    setVerificationStep("method");
-    setVerificationError("");
-    setCode("");
-  }, [account?.phoneNumberId]);
 
   const handleEmbeddedSignupResponse = async (response) => {
     try {
@@ -206,60 +170,6 @@ export default function WhatsAppConnectCard({ account, onAccountChanged }) {
     }
   };
 
-  const requestVerificationCode = async () => {
-    setVerificationError("");
-    setIsRequestingCode(true);
-
-    try {
-      const { data } = await whatsappApi.requestPhoneVerificationCode({
-        code_method: verificationMethod,
-        language: "en",
-      });
-      setVerificationMethod(
-        String(data?.codeMethod || verificationMethod).toUpperCase(),
-      );
-      setCode("");
-      setVerificationStep("code");
-    } catch (err) {
-      setVerificationError(
-        extractErrorMessage(err, "Unable to request a verification code."),
-      );
-    } finally {
-      setIsRequestingCode(false);
-    }
-  };
-
-  const verifyPhoneCode = async () => {
-    if (code.length !== 6) return;
-
-    setVerificationError("");
-    setIsVerifyingCode(true);
-
-    try {
-      await whatsappApi.verifyPhoneVerificationCode({ code });
-      setVerifiedLocally(true);
-    } catch (err) {
-      setVerificationError(
-        extractErrorMessage(err, "The verification code was rejected."),
-      );
-      return;
-    } finally {
-      setIsVerifyingCode(false);
-    }
-
-    try {
-      await onAccountChanged?.();
-    } catch (_err) {
-      // Verification succeeded; the persisted status will refresh on the next load.
-    }
-  };
-
-  const changeVerificationMethod = () => {
-    setVerificationError("");
-    setCode("");
-    setVerificationStep("method");
-  };
-
   return (
     <Box
       bg={cardBackground}
@@ -312,197 +222,6 @@ export default function WhatsAppConnectCard({ account, onAccountChanged }) {
               </StatNumber>
             </Stat>
           </SimpleGrid>
-
-          {canVerifyPhone ? (
-            <>
-              <Divider borderColor={cardBorder} />
-              <Box
-                bg={verificationBackground}
-                border="1px solid"
-                borderColor={isPhoneVerified ? "green.200" : cardBorder}
-                borderRadius="lg"
-                p={{ base: 4, md: 5 }}
-              >
-                {isPhoneVerified ? (
-                  <HStack align="flex-start" spacing={3}>
-                    <Icon
-                      as={FiCheckCircle}
-                      color="green.500"
-                      boxSize={6}
-                      mt={0.5}
-                    />
-                    <Box>
-                      <HStack spacing={2} mb={1}>
-                        <Heading size="sm">Phone number verified</Heading>
-                        <Badge colorScheme="green">Verified</Badge>
-                      </HStack>
-                      <Text color={mutedText} fontSize="sm">
-                        Your WhatsApp phone number is registered and ready to
-                        use.
-                      </Text>
-                    </Box>
-                  </HStack>
-                ) : (
-                  <Stack spacing={5}>
-                    <HStack align="flex-start" spacing={3}>
-                      <Icon
-                        as={FiShield}
-                        color="primary.500"
-                        boxSize={6}
-                        mt={0.5}
-                      />
-                      <Box>
-                        <Heading size="sm" mb={1}>
-                          Verify your phone number
-                        </Heading>
-                        <Text color={mutedText} fontSize="sm">
-                          Meta will send a six-digit code to{" "}
-                          {account?.displayPhoneNumber ||
-                            "your connected number"}
-                          .
-                        </Text>
-                      </Box>
-                    </HStack>
-
-                    {verificationError ? (
-                      <Alert status="error" borderRadius="md" fontSize="sm">
-                        <AlertIcon />
-                        {verificationError}
-                      </Alert>
-                    ) : null}
-
-                    {verificationStep === "method" ? (
-                      <FormControl as="fieldset">
-                        <FormLabel as="legend" fontSize="sm" fontWeight="600">
-                          How should we send your code?
-                        </FormLabel>
-                        <RadioGroup
-                          value={verificationMethod}
-                          onChange={setVerificationMethod}
-                        >
-                          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3}>
-                            {[
-                              {
-                                value: "SMS",
-                                label: "Text message",
-                                icon: FiMessageSquare,
-                              },
-                              {
-                                value: "VOICE",
-                                label: "Voice call",
-                                icon: FiPhoneCall,
-                              },
-                            ].map((option) => {
-                              const selected =
-                                verificationMethod === option.value;
-                              return (
-                                <Box
-                                  as="label"
-                                  key={option.value}
-                                  bg={
-                                    selected
-                                      ? selectedOptionBackground
-                                      : optionBackground
-                                  }
-                                  border="1px solid"
-                                  borderColor={
-                                    selected ? "green.400" : cardBorder
-                                  }
-                                  borderRadius="md"
-                                  cursor="pointer"
-                                  p={3}
-                                >
-                                  <HStack spacing={3}>
-                                    <Radio
-                                      value={option.value}
-                                      colorScheme="green"
-                                    />
-                                    <Icon
-                                      as={option.icon}
-                                      color={selected ? "green.500" : mutedText}
-                                    />
-                                    <Text fontWeight="600" fontSize="sm">
-                                      {option.label}
-                                    </Text>
-                                  </HStack>
-                                </Box>
-                              );
-                            })}
-                          </SimpleGrid>
-                        </RadioGroup>
-                        <Button
-                          mt={4}
-                          colorScheme="green"
-                          onClick={requestVerificationCode}
-                          isLoading={isRequestingCode}
-                          loadingText="Sending code"
-                        >
-                          Send verification code
-                        </Button>
-                      </FormControl>
-                    ) : (
-                      <FormControl>
-                        <FormLabel fontSize="sm" fontWeight="600">
-                          Enter verification code
-                        </FormLabel>
-                        <Input
-                          type="text"
-                          inputMode="numeric"
-                          autoComplete="one-time-code"
-                          maxLength={6}
-                          value={code}
-                          onChange={(event) =>
-                            setCode(
-                              event.target.value.replace(/\D/g, "").slice(0, 6),
-                            )
-                          }
-                          placeholder="000000"
-                          bg={optionBackground}
-                          maxW="240px"
-                          fontSize="xl"
-                          letterSpacing="0"
-                          textAlign="center"
-                        />
-                        <FormHelperText color={mutedText}>
-                          Code sent by{" "}
-                          {verificationMethod === "VOICE"
-                            ? "voice call"
-                            : "text message"}
-                          .
-                        </FormHelperText>
-                        <HStack mt={4} spacing={3} flexWrap="wrap">
-                          <Button
-                            colorScheme="green"
-                            onClick={verifyPhoneCode}
-                            isLoading={isVerifyingCode}
-                            loadingText="Verifying"
-                            isDisabled={code.length !== 6 || isRequestingCode}
-                          >
-                            Verify phone number
-                          </Button>
-                          <Button
-                            variant="outline"
-                            onClick={requestVerificationCode}
-                            isLoading={isRequestingCode}
-                            isDisabled={isVerifyingCode}
-                          >
-                            Resend code
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            onClick={changeVerificationMethod}
-                            isDisabled={isRequestingCode || isVerifyingCode}
-                          >
-                            Change method
-                          </Button>
-                        </HStack>
-                      </FormControl>
-                    )}
-                  </Stack>
-                )}
-              </Box>
-            </>
-          ) : null}
         </Stack>
       ) : (
         <>

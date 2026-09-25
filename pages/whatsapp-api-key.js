@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import Head from "next/head";
+import NextLink from "next/link";
+import { useRouter } from "next/router";
 import {
   Alert,
   AlertDescription,
@@ -16,6 +18,7 @@ import {
   Input,
   InputGroup,
   InputRightElement,
+  Link,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -30,6 +33,7 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
+import { FiArrowLeft } from "react-icons/fi";
 import {
   FaCheck,
   FaCopy,
@@ -65,14 +69,19 @@ export default function WhatsAppApiKeyPage({
   apiKeyRotatedAt,
   embedded = false,
 }) {
-  const { company } = useAuth();
+  const router = useRouter();
+  const { account, company, isAuthenticated, isLoading } = useAuth();
   const toast = useToast();
   const confirmationModal = useDisclosure();
   const revealModal = useDisclosure();
   const revokeModal = useDisclosure();
   const discardWarningModal = useDisclosure();
-  const [hasKey, setHasKey] = useState(Boolean(apiKeyHash));
-  const [rotatedAt, setRotatedAt] = useState(apiKeyRotatedAt || null);
+  const [hasKey, setHasKey] = useState(
+    Boolean(apiKeyHash ?? account?.apiKeyHash),
+  );
+  const [rotatedAt, setRotatedAt] = useState(
+    apiKeyRotatedAt || account?.apiKeyRotatedAt || null,
+  );
   const [pendingAction, setPendingAction] = useState("generate");
   const [loadingAction, setLoadingAction] = useState(null);
   const [revealedKey, setRevealedKey] = useState("");
@@ -89,16 +98,25 @@ export default function WhatsAppApiKeyPage({
   const cardBorder = useColorModeValue("gray.200", "whiteAlpha.300");
   const mutedText = useColorModeValue("ink.500", "gray.300");
 
-  const effectiveCompanyId = companyCId ?? company?.cId;
+  const effectiveCompanyId = companyCId ?? account?.companyCId ?? company?.cId;
   const expectedConfirmWord =
-    confirmWord || company?.dbcompanyname || "CONFIRM";
+    confirmWord || account?.companyName || company?.dbcompanyname || "CONFIRM";
   const isConfirmationValid =
     acknowledgesInvalidation && confirmationWord === expectedConfirmWord;
 
   useEffect(() => {
-    setHasKey(Boolean(apiKeyHash));
-    setRotatedAt(apiKeyRotatedAt || null);
-  }, [apiKeyHash, apiKeyRotatedAt]);
+    setHasKey(Boolean(apiKeyHash ?? account?.apiKeyHash));
+    setRotatedAt(apiKeyRotatedAt || account?.apiKeyRotatedAt || null);
+  }, [
+    account?.apiKeyHash,
+    account?.apiKeyRotatedAt,
+    apiKeyHash,
+    apiKeyRotatedAt,
+  ]);
+
+  useEffect(() => {
+    if (!embedded && !isLoading && !isAuthenticated) router.replace("/login");
+  }, [embedded, isAuthenticated, isLoading, router]);
 
   useEffect(() => {
     if (!cooldownActive) return undefined;
@@ -234,6 +252,14 @@ export default function WhatsAppApiKeyPage({
 
   const isCompanyAvailable = typeof effectiveCompanyId === "number";
 
+  if (!embedded && (isLoading || !isAuthenticated)) {
+    return (
+      <Container maxW="container.md" py={20} centerContent>
+        {isLoading ? <Spinner color="primary.500" size="lg" /> : null}
+      </Container>
+    );
+  }
+
   return (
     <Box
       bg={embedded ? "transparent" : pageBackground}
@@ -250,12 +276,26 @@ export default function WhatsAppApiKeyPage({
         p={embedded ? 0 : undefined}
       >
         <VStack align="stretch" spacing={6}>
-          <Box>
-            <Heading size="lg">WhatsApp API Key</Heading>
-            <Text mt={2} color={mutedText}>
-              Manage the key used by your desktop applications.
-            </Text>
-          </Box>
+          <HStack justify="space-between" align="flex-start" spacing={4}>
+            <Box>
+              <Heading size="lg">WhatsApp API Key</Heading>
+              <Text mt={2} color={mutedText}>
+                Manage the key used by your desktop applications.
+              </Text>
+            </Box>
+            {!embedded ? (
+              <NextLink href="/dashboard" passHref legacyBehavior>
+                <Button
+                  as={Link}
+                  leftIcon={<FiArrowLeft />}
+                  variant="outline"
+                  flexShrink={0}
+                >
+                  Dashboard
+                </Button>
+              </NextLink>
+            ) : null}
+          </HStack>
 
           <Box
             bg={cardBackground}

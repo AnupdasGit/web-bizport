@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Head from "next/head";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -10,43 +11,52 @@ import {
   Button,
   HStack,
   Spinner,
+  SimpleGrid,
+  Icon,
+  Link,
   useColorModeValue,
 } from "@chakra-ui/react";
+import { FiFileText, FiInbox, FiKey, FiSend } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
 import AccountDetailsCard from "../components/dashboard/AccountDetailsCard";
 import WhatsAppConnectCard from "../components/dashboard/WhatsAppConnectCard";
-import MessageTemplatesCard from "../components/dashboard/MessageTemplatesCard";
-import MessagesLogCard from "../components/dashboard/MessagesLogCard";
-import WhatsAppApiKeyPage from "./whatsapp-api-key";
+
+const DASHBOARD_LINKS = [
+  {
+    href: "/messages",
+    label: "Outgoing messages",
+    description: "Track delivery and export logs",
+    icon: FiSend,
+  },
+  {
+    href: "/inbound-messages",
+    label: "Incoming messages",
+    description: "View messages sent to your number",
+    icon: FiInbox,
+  },
+  {
+    href: "/message-templates",
+    label: "Message templates",
+    description: "Review and sync Meta templates",
+    icon: FiFileText,
+  },
+  {
+    href: "/whatsapp-api-key",
+    label: "API key",
+    description: "Manage desktop app access",
+    icon: FiKey,
+  },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, account, company, logout, refreshMe } =
     useAuth();
-  const [reportOutput, setReportOutput] = useState(null);
-  const [isTestingReport, setIsTestingReport] = useState(false);
   const pageBackground = useColorModeValue("gray.50", "gray.900");
   const headingColor = useColorModeValue("ink.800", "gray.100");
   const mutedText = useColorModeValue("ink.500", "gray.300");
-  const outputBackground = useColorModeValue("gray.900", "blackAlpha.500");
-
-  const testOnlineReport = async () => {
-    setIsTestingReport(true);
-    setReportOutput(null);
-    try {
-      const response = await fetch("/api/test-online-report");
-      const body = await response.json();
-      setReportOutput({ status: response.status, ok: response.ok, body });
-    } catch (error) {
-      setReportOutput({
-        status: null,
-        ok: false,
-        body: { message: error.message },
-      });
-    } finally {
-      setIsTestingReport(false);
-    }
-  };
+  const panelBackground = useColorModeValue("white", "gray.800");
+  const panelBorder = useColorModeValue("gray.100", "whiteAlpha.200");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -88,9 +98,6 @@ export default function DashboardPage() {
             </Text>
           </Stack>
           <HStack spacing={3}>
-            {/* <Button size="sm" colorScheme="orange" onClick={testOnlineReport} isLoading={isTestingReport}>
-              Test report API
-            </Button> */}
             <Button variant="outline" onClick={logout}>
               Log Out
             </Button>
@@ -98,45 +105,51 @@ export default function DashboardPage() {
         </HStack>
 
         <Stack spacing={6}>
-          {reportOutput ? (
-            <Box>
-              <Text
-                mb={2}
-                fontWeight="600"
-                color={reportOutput.ok ? "green.500" : "red.500"}
-              >
-                Report response
-                {reportOutput.status ? ` (HTTP ${reportOutput.status})` : ""}
-              </Text>
-              <Box
-                as="pre"
-                bg={outputBackground}
-                color="gray.100"
-                borderRadius="md"
-                p={4}
-                overflowX="auto"
-                maxH="360px"
-                fontSize="sm"
-                whiteSpace="pre-wrap"
-              >
-                {JSON.stringify(reportOutput.body, null, 2)}
-              </Box>
-            </Box>
-          ) : null}
           <AccountDetailsCard account={account} company={company} />
           <WhatsAppConnectCard
             account={account}
             onAccountChanged={() => refreshMe()}
           />
-          <MessageTemplatesCard />
-          <WhatsAppApiKeyPage
-            companyCId={account?.companyCId ?? company?.cId}
-            confirmWord={account?.companyName || company?.dbcompanyname}
-            apiKeyHash={account?.apiKeyHash}
-            apiKeyRotatedAt={account?.apiKeyRotatedAt}
-            embedded
-          />
-          <MessagesLogCard />
+          <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={4}>
+            {DASHBOARD_LINKS.map((item) => (
+              <NextLink
+                key={item.href}
+                href={item.href}
+                passHref
+                legacyBehavior
+              >
+                <Link
+                  bg={panelBackground}
+                  border="1px solid"
+                  borderColor={panelBorder}
+                  borderRadius="lg"
+                  p={5}
+                  _hover={{
+                    borderColor: "primary.400",
+                    textDecoration: "none",
+                    boxShadow: "sm",
+                  }}
+                >
+                  <HStack align="flex-start" spacing={4}>
+                    <Icon
+                      as={item.icon}
+                      color="primary.500"
+                      boxSize={5}
+                      mt={1}
+                    />
+                    <Box>
+                      <Text fontWeight="700" color={headingColor}>
+                        {item.label}
+                      </Text>
+                      <Text color={mutedText} fontSize="sm" mt={1}>
+                        {item.description}
+                      </Text>
+                    </Box>
+                  </HStack>
+                </Link>
+              </NextLink>
+            ))}
+          </SimpleGrid>
         </Stack>
       </Container>
     </Box>
